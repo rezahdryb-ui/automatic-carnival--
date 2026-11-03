@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>برنامه خرجی پرسنل — آداسا</title>
+<style>
+:root{--bg:#14161a;--sf:#1d2026;--cd:#23272f;--ln:#333944;--tx:#eef0f3;--mu:#9aa3af;--ac:#c8a06a;--ok:#4caf7d;--er:#e06c6c}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Vazirmatn",Tahoma,sans-serif;background:var(--bg);color:var(--tx);line-height:1.9}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;-webkit-appearance:none;appearance:none}
+input,select{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:9px 12px;color:var(--tx);width:100%}
+input:focus,select:focus{outline:2px solid var(--ac)}
+header{position:sticky;top:0;z-index:40;background:rgba(20,22,26,.94);border-bottom:1px solid var(--ln);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+header b{font-size:1rem}
+.spacer{flex:1}
+.iconbtn{background:var(--sf);border:1px solid var(--ln);color:var(--tx);border-radius:10px;padding:8px 14px;cursor:pointer}
+.iconbtn:hover{border-color:var(--ac)}
+nav{display:flex;gap:6px;max-width:960px;margin:14px auto 0;padding:0 14px;flex-wrap:wrap}
+nav button{flex:1;min-width:120px;background:var(--sf);border:1px solid var(--ln);color:var(--mu);border-radius:12px;padding:10px;cursor:pointer;font-size:.9rem}
+nav button.on{background:var(--ac);border-color:var(--ac);color:#141414;font-weight:700}
+main{max-width:960px;margin:0 auto;padding:18px 14px 70px}
+.page{display:none}.page.on{display:block}
+.card{background:var(--cd);border:1px solid var(--ln);border-radius:16px;padding:18px;margin-bottom:16px}
+.card h2{font-size:1.05rem;margin-bottom:12px;color:var(--ac)}
+label{display:block;font-size:.82rem;color:var(--mu);margin:12px 0 5px}
+label:first-of-type{margin-top:0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.row{grid-template-columns:1fr}}
+.btn{width:100%;margin-top:16px;background:var(--ac);border:none;color:#141414;font-weight:700;border-radius:12px;padding:12px;cursor:pointer}
+.btn:disabled{opacity:.5}
+.msg{margin-top:12px;font-size:.88rem;text-align:center;display:none}
+.msg.ok{display:block;color:var(--ok)}
+.msg.er{display:block;color:var(--er)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{padding:9px 8px;border-bottom:1px solid var(--ln);text-align:right;white-space:nowrap}
+th{color:var(--ac);font-weight:700;background:var(--sf)}
+.tblwrap{overflow-x:auto;border:1px solid var(--ln);border-radius:12px}
+.total{display:flex;justify-content:space-between;background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:12px 16px;margin-top:12px;font-size:.95rem}
+.total b{color:var(--ac)}
+.sub{color:var(--mu);font-size:.8rem;margin-top:8px}
+.pill{display:inline-block;background:var(--sf);border:1px solid var(--ln);border-radius:999px;padding:3px 12px;font-size:.78rem;color:var(--mu);margin:3px 2px}
+.status{font-size:.8rem;color:var(--mu)}
+@media print{header,nav,.noprint{display:none}body{background:#fff;color:#000}.card{border-color:#ccc;background:#fff}th,td{border-color:#ccc;color:#000}}
+</style>
+</head>
+<body>
+
+<header>
+  <b>خرجی پرسنل — آداسا</b>
+  <span class="status" id="ustatus"></span>
+  <span class="spacer"></span>
+  <button class="iconbtn" id="gear">⚙ تنظیمات</button>
+</header>
+
+<div class="page on" id="p-setup" style="max-width:560px;margin:40px auto;padding:0 14px">
+  <div class="card">
+    <h2>راه‌اندازی اولیه</h2>
+    <label>آدرس Web App (از Deploy در گوگل‌شیت)</label>
+    <input id="s-api" placeholder="https://script.google.com/macros/s/…/exec">
+    <label>نام شما (ثبت می‌شود تا معلوم باشد چه کسی وارد کرده)</label>
+    <input id="s-user" placeholder="مثلاً: رضا">
+    <button class="btn" id="s-save">ذخیره و اتصال</button>
+    <div class="msg" id="s-msg"></div>
+    <p class="sub">این تنظیمات فقط یک بار انجام می‌شود و در همین دستگاه ذخیره می‌ماند.</p>
+  </div>
+</div>
+
+<nav id="nav" style="display:none">
+  <button class="on" data-p="p-inv">فاکتور خرید</button>
+  <button data-p="p-exp">خرجی پرسنل</button>
+  <button data-p="p-rep">گزارش‌ها</button>
+  <button data-p="p-per">پرسنل</button>
+</nav>
+
+<main>
+  <div class="page" id="p-inv">
+    <div class="card">
+      <h2>ثبت فاکتور خرید</h2>
+      <label>تاریخ فاکتور</label>
+      <input type="date" id="i-date">
+      <label>فروشگاه / تأمین‌کننده</label>
+      <input id="i-sup" placeholder="مثلاً: مصالح فروشی …">
+      <label>شرح خرید</label>
+      <input id="i-desc">
+      <label>مبلغ (ریال)</label>
+      <input id="i-amt" inputmode="numeric" placeholder="۰">
+      <button class="btn" id="i-save">ثبت فاکتور</button>
+      <div class="msg" id="i-msg"></div>
+    </div>
+  </div>
+
+  <div class="page" id="p-exp">
+    <div class="card">
+      <h2>ثبت خرجی پرسنل</h2>
+      <label>کد پرسنلی (از ۱۹۸ تا ۷۲۰)</label>
+      <input id="e-code" inputmode="numeric" placeholder="کد را وارد یا از لیست انتخاب کنید" list="dl-per">
+      <datalist id="dl-per"></datalist>
+      <div id="e-perinfo" class="sub"></div>
+      <label>تاریخ</label>
+      <input type="date" id="e-date">
+      <label>شرح خرجی</label>
+      <input id="e-desc">
+      <label>مبلغ (ریال)</label>
+      <input id="e-amt" inputmode="numeric" placeholder="۰">
+      <button class="btn" id="e-save">ثبت خرجی</button>
+      <div class="msg" id="e-msg"></div>
+    </div>
+  </div>
+
+  <div class="page" id="p-rep">
+    <div class="card noprint">
+      <h2>گزارش‌ها</h2>
+      <div class="row">
+        <div>
+          <label>نوع گزارش</label>
+          <select id="r-type">
+            <option value="inv">فاکتورهای خرید</option>
+            <option value="exp">ریز خرجی پرسنل</option>
+          </select>
+        </div>
+        <div>
+          <label>کد پرسنلی (فقط برای خرجی — خالی = همه)</label>
+          <input id="r-code" inputmode="numeric" placeholder="همه">
+        </div>
+        <div>
+          <label>از تاریخ</label>
+          <input type="date" id="r-from">
+        </div>
+        <div>
+          <label>تا تاریخ</label>
+          <input type="date" id="r-to">
+        </div>
+      </div>
+      <button class="btn" id="r-go">نمایش گزارش</button>
+      <div class="msg" id="r-msg"></div>
+    </div>
+    <div class="card" id="r-out" style="display:none">
+      <div class="tblwrap"><table id="r-tbl"></table></div>
+      <div class="total"><span>جمع کل</span><b id="r-total">۰ ریال</b></div>
+      <div id="r-per" style="margin-top:14px"></div>
+      <button class="btn noprint" onclick="window.print()">چاپ گزارش</button>
+    </div>
+  </div>
+
+  <div class="page" id="p-per">
+    <div class="card">
+      <h2>افزودن پرسنل جدید</h2>
+      <div class="row">
+        <div><label>کد پرسنلی</label><input id="p-code" inputmode="numeric"></div>
+        <div><label>نام و نام خانوادگی</label><input id="p-name"></div>
+      </div>
+      <button class="btn" id="p-save">افزودن به لیست</button>
+      <div class="msg" id="p-msg"></div>
+      <p class="sub">لیست کامل پرسنل در شیت «پرسنل» گوگل‌شیت است؛ می‌توانید آنجا هم گروهی اضافه یا ویرایش کنید.</p>
+    </div>
+    <div class="card">
+      <h2>لیست پرسنل <span class="status" id="per-count"></span></h2>
+      <div class="tblwrap"><table id="per-tbl"></table></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const CFG={api:localStorage.getItem('krj_api')||'',user:localStorage.getItem('krj_user')||''};
+let PER=[],BUSY=false;
+const $=id=>document.getElementById(id);
+const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const money=n=>fa((parseInt(n,10)||0).toLocaleString('en-US'));
+const parse=s=>parseInt(String(s).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[^\d]/g,''),10)||0;
+
+/* ---------- اتصال ---------- */
+async function api(action,data){
+  if(!CFG.api)throw new Error('آدرس سرور تنظیم نشده است');
+  const r=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(Object.assign({action},data||{}))});
+  const j=await r.json();
+  if(!j.ok)throw new Error(j.error||'خطای نامشخص سرور');
+  return j;
+}
+async function loadPer(){
+  try{const j=await api('getPersonnel');PER=j.list;
+    $('dl-per').innerHTML=PER.map(p=>`<option value="${p.code}">${p.name}</option>`).join('');
+    $('per-tbl').innerHTML='<tr><th>کد</th><th>نام</th></tr>'+
+      PER.map(p=>`<tr><td>${fa(p.code)}</td><td>${p.name}</td></tr>`).join('');
+    $('per-count').textContent='('+fa(PER.length)+' نفر)';
+  }catch(e){$('per-count').textContent='خطا در دریافت: '+e.message}
+}
+
+/* ---------- راه‌اندازی ---------- */
+$('gear').onclick=()=>{$('s-api').value=CFG.api;$('s-user').value=CFG.user;$('p-setup').classList.add('on');
+  document.querySelectorAll('.page').forEach(x=>{if(x.id!=='p-setup')x.classList.remove('on')});
+  navBtns.forEach(b=>b.classList.remove('on'));};
+$('s-save').onclick=async()=>{
+  const a=$('s-api').value.trim(),u=$('s-user').value.trim();
+  $('s-msg').className='msg';$('s-msg').textContent='در حال تست اتصال…';
+  localStorage.setItem('krj_api',a);CFG.api=a;
+  try{
+    await api('ping');
+    localStorage.setItem('krj_user',u);CFG.user=u;
+    start();
+  }catch(e){$('s-msg').className='msg er';$('s-msg').textContent='اتصال ناموفق: '+e.message;}
+};
+function start(){
+  $('p-setup').classList.remove('on');
+  $('nav').style.display='flex';
+  $('ustatus').textContent=CFG.user?('کاربر: '+CFG.user):'';
+  show('p-inv');loadPer();
+}
+if(CFG.api){$('s-api').value=CFG.api;$('s-user').value=CFG.user;start();}
+
+/* ---------- ناوبری ---------- */
+const navBtns=[...document.querySelectorAll('nav button')];
+function show(id){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('on',x.id===id));}
+navBtns.forEach(b=>b.onclick=()=>{navBtns.forEach(x=>x.classList.remove('on'));b.classList.add('on');show(b.dataset.p);
+  if(b.dataset.p==='p-per'&&!PER.length)loadPer();});
+
+/* ---------- فرمت مبلغ ---------- */
+['i-amt','e-amt'].forEach(id=>$(id).addEventListener('input',e=>{
+  const v=parse(e.target.value);e.target.value=money(v);}));
+
+/* ---------- ثبت فاکتور ---------- */
+$('i-save').onclick=async()=>{
+  if(BUSY)return;BUSY=true;
+  const m=$('i-msg');m.className='msg';m.textContent='در حال ذخیره…';
+  const amount=parse($('i-amt').value);
+  if(!amount||!$('i-date').value){m.className='msg er';m.textContent='تاریخ و مبلغ را کامل کنید';BUSY=false;return;}
+  try{
+    await api('addInvoice',{user:CFG.user,date:$('i-date').value,supplier:$('i-sup').value.trim(),desc:$('i-desc').value.trim(),amount});
+    m.className='msg ok';m.textContent='✓ فاکتور ثبت شد در '+money(amount)+' ریال';
+    $('i-sup').value='';$('i-desc').value='';$('i-amt').value='';
+  }catch(e){m.className='msg er';m.textContent=e.message}
+  BUSY=false;
+};
+
+/* ---------- ثبت خرجی ---------- */
+$('e-code').addEventListener('input',e=>{
+  const p=PER.find(x=>x.code===e.target.value.trim());
+  $('e-perinfo').textContent=p?('نام: '+p.name):'';});
+$('e-save').onclick=async()=>{
+  if(BUSY)return;BUSY=true;
+  const m=$('e-msg');m.className='msg';m.textContent='در حال ذخیره…';
+  const code=$('e-code').value.trim(),p=PER.find(x=>x.code===code),amount=parse($('e-amt').value);
+  if(!code||!amount||!$('e-date').value){m.className='msg er';m.textContent='کد، تاریخ و مبلغ را کامل کنید';BUSY=false;return;}
+  try{
+    await api('addExpense',{user:CFG.user,date:$('e-date').value,code,pname:p?p.name:'نامشخص',desc:$('e-desc').value.trim(),amount});
+    m.className='msg ok';m.textContent='✓ خرجی ثبت شد: '+(p?p.name:code)+' — '+money(amount)+' ریال';
+    $('e-code').value='';$('e-desc').value='';$('e-amt').value='';$('e-perinfo').textContent='';
+  }catch(e){m.className='msg er';m.textContent=e.message}
+  BUSY=false;
+};
+
+/* ---------- گزارش ---------- */
+$('r-go').onclick=async()=>{
+  const m=$('r-msg');m.className='msg';m.textContent='در حال دریافت…';
+  try{
+    const type=$('r-type').value,from=$('r-from').value,to=$('r-to').value,code=$('r-code').value.trim();
+    let rows=[];
+    if(type==='inv'){rows=(await api('getInvoices',{from,to})).list;}
+    else{
+      rows=(await api('getExpenses',{from,to})).list;
+      if(code)rows=rows.filter(r=>r.code===code);
+    }
+    if(!rows.length){m.className='msg er';m.textContent='موردی در این بازه پیدا نشد';$('r-out').style.display='none';return;}
+    let total=0;
+    const isInv=type==='inv';
+    $('r-tbl').innerHTML='<tr><th>تاریخ</th>'+(isInv?'<th>فروشگاه</th>':'<th>کد</th><th>نام پرسنل</th>')+
+      '<th>شرح</th><th>کاربر</th><th>مبلغ (ریال)</th></tr>'+
+      rows.map(r=>{
+        total+=r.amount;
+        return '<tr><td>'+fa(r.date)+'</td>'+
+          (isInv?('<td>'+r.supplier+'</td>'):('<td>'+fa(r.code)+'</td><td>'+r.pname+'</td>'))+
+          '<td>'+r.desc+'</td><td>'+r.user+'</td><td>'+money(r.amount)+'</td></tr>';
+      }).join('');
+    $('r-total').textContent=money(total)+' ریال';
+    /* خلاصه به تفکیک پرسنل یا فروشگاه */
+    const g={};
+    rows.forEach(r=>{const k=isInv?(r.supplier||'نامشخص'):(r.code+' — '+r.pname);g[k]=(g[k]||0)+r.amount;});
+    $('r-per').innerHTML='<b style="color:var(--ac)">'+(isInv?'جمع به تفکیک فروشگاه:':'جمع به تفکیک پرسنل:')+'</b><br>'+
+      Object.keys(g).sort((a,b)=>g[b]-g[a]).map(k=>'<span class="pill">'+k+': '+money(g[k])+'</span>').join('');
+    m.className='msg ok';m.textContent=fa(rows.length)+' مورد پیدا شد';
+    $('r-out').style.display='block';
+  }catch(e){m.className='msg er';m.textContent=e.message}
+};
+
+/* ---------- افزودن پرسنل ---------- */
+$('p-save').onclick=async()=>{
+  const m=$('p-msg');m.className='msg';m.textContent='در حال ذخیره…';
+  const code=$('p-code').value.trim(),name=$('p-name').value.trim();
+  if(!code||!name){m.className='msg er';m.textContent='کد و نام را وارد کنید';return;}
+  try{await api('addPersonnel',{code,name});m.className='msg ok';m.textContent='✓ اضافه شد';
+    $('p-code').value='';$('p-name').value='';loadPer();
+  }catch(e){m.className='msg er';m.textContent=e.message}
+};
+</script>
+</body>
+</html>
